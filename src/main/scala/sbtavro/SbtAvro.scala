@@ -81,12 +81,17 @@ object SbtAvro extends AutoPlugin {
       val schemaAvr = schemaParser.parse(schemaFile)
       val compiler = new SpecificCompiler(schemaAvr)
       compiler.setStringType(stringType)
+      compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibilityName.toUpperCase))
       compiler.compileToDestination(null, target)
     }
 
-    for (protocol <- (srcDir ** "*.avpr").get) {
-      log.info("Compiling Avro protocol %s".format(protocol))
-      SpecificCompiler.compileProtocol(protocol.asFile, target)
+    for (protocolFile <- (srcDir ** "*.avpr").get) {
+      log.info("Compiling Avro protocol %s".format(protocolFile))
+      val protocol = Protocol.parse(protocolFile.asFile)
+      val compiler = new SpecificCompiler(protocol)
+      compiler.setStringType(stringType)
+      compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibilityName.toUpperCase))
+      compiler.compileToDestination(null, target)
     }
 
     (target ** "*.java").get.toSet
